@@ -1,5 +1,6 @@
 import { SSMConfig } from '../aws/ssm'
-import { GetParameterParams, SelectBoxParams, WriteCLIParams } from '../types/interface'
+import { GetParameterParams, WriteCLIParams } from '../types/interface'
+import { helperMakeInteractionChoice } from '../utils/helper'
 import { getYamlConfig } from '../utils/inspect-parameter'
 import { InputBoxes, SelectBox } from '../utils/interaction'
 
@@ -16,16 +17,7 @@ export const writeSubRunner = async ({ profile, region }: Partial<GetParameterPa
     region: region || '',
   })
 
-  const commandObj = Object.entries(WRITE_SUB_COMMAND).reduce((acc, [k, v]) => {
-    const obj: SelectBoxParams = {
-      name: v,
-      value: k,
-    }
-    acc.push(obj)
-    return acc
-  }, [] as SelectBoxParams[])
-
-  const select = (await SelectBox('입력 방법을 선택해주세요', commandObj)) as keyof typeof WRITE_SUB_COMMAND
+  const select = (await SelectBox('입력 방법을 선택해주세요', helperMakeInteractionChoice(WRITE_SUB_COMMAND))) as keyof typeof WRITE_SUB_COMMAND
 
   if (select === 'CLI') {
     return await inputUseCli(ssmConfig)
