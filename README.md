@@ -7,10 +7,6 @@
 ## Functions (Parameter Store)
 
 - Write
-    - 단일 쓰기
-    - 파일 쓰기 (input >> .json)
-
 - Delete
 - Search
-- Save
-    - 파일 저장
+- Load
