@@ -1,0 +1,20 @@
+input:
+  1: 
+    app: internal
+    env: dev
+    svc: sso
+    source: MYSQL_HOST
+    value: admin
+  2: 
+    app: internal
+    env: dev
+    svc: sso
+    source: MYSQL_PASSWORD
+    value: 1234
+  3: 
+    app: internal
+    env: dev
+    svc: sso
+    source: MYSQL_PORTR
+    value: 3306
+

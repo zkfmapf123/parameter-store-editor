@@ -1,6 +1,9 @@
 import { SSMConfig } from '../aws/ssm'
 import { GetParameterParams, SelectBoxParams, WriteCLIParams } from '../types/interface'
+import { getYamlConfig } from '../utils/inspect-parameter'
 import { InputBoxes, SelectBox } from '../utils/interaction'
+
+const INPUT_FILE = 'input.yaml'
 
 const WRITE_SUB_COMMAND = {
   CLI: 'CLI 입력',
@@ -38,6 +41,7 @@ const inputUseCli = async (ssmConfig: SSMConfig) => {
     app: '',
     env: '',
     svc: '',
+    source: '',
     value: '',
   }
 
@@ -53,10 +57,25 @@ const inputUseCli = async (ssmConfig: SSMConfig) => {
     return
   }
 
-  const isSuccess = await ssmConfig.update(writeCliParmas)
-  if (!isSuccess) {
+  const fullname = await ssmConfig.update(writeCliParmas)
+  if (fullname === '') {
     process.exit(1)
   }
+
+  console.log(`${fullname} is Create...`)
 }
 
-const inputUseFile = async (ssmConfig: SSMConfig) => {}
+const inputUseFile = async (ssmConfig: SSMConfig) => {
+  const parameters = getYamlConfig<WriteCLIParams[]>(INPUT_FILE, (doc: unknown) => {
+    const _doc = doc as Record<'input', WriteCLIParams>
+    return Object.values(_doc.input)
+  })
+
+  console.log(parameters)
+
+  for (const parameter of parameters) {
+    const fullPath = await ssmConfig.update(parameter)
+
+    console.log(`${fullPath} Create is ${fullPath === '' ? false : true}`)
+  }
+}

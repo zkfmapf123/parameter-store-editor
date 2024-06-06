@@ -29,5 +29,11 @@ export interface WriteCLIParams {
   app: string
   env: string
   svc: string
-  value: string
+  source: string
+  value: string | number
+}
+
+export interface YamlParams {
+  isExist: boolean
+  filename: string
 }

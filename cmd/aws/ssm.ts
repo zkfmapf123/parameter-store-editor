@@ -1,4 +1,12 @@
-import { GetParametersByPathCommand, ListTagsForResourceCommand, PutParameterCommand, SSMClient, Tag } from '@aws-sdk/client-ssm'
+import {
+  AddTagsToResourceCommand,
+  DeleteParameterCommand,
+  GetParametersByPathCommand,
+  ListTagsForResourceCommand,
+  PutParameterCommand,
+  SSMClient,
+  Tag,
+} from '@aws-sdk/client-ssm'
 import { fromIni } from '@aws-sdk/credential-providers'
 import { Dictionary, SSMParameterStoreParams } from '../types/aws.interface'
 import { GetParameterParams, WriteCLIParams } from '../types/interface'
@@ -92,12 +100,12 @@ export class SSMConfig {
     return filterFn(value, res)
   }
 
-  async update(config: WriteCLIParams, overwrite = true): Promise<boolean> {
-    const { app, env, svc, value } = config
-    const fullName = `/${app}/${env}/${svc}`
+  async update(config: WriteCLIParams, overwrite = true): Promise<string> {
+    const { app, env, svc, source, value } = config
+    const fullName = `/${app}/${env}/${svc}/${source}`
 
     const tags = Object.entries(config)
-      .filter(([k, _]) => k! == 'value')
+      .filter(([k, _]) => k !== 'value')
       .reduce((acc, [k, v]) => {
         const _tag: Tag = {
           Key: k,
@@ -110,10 +118,32 @@ export class SSMConfig {
 
     const command = new PutParameterCommand({
       Name: fullName,
-      Value: value,
+      Value: String(value),
       Type: 'SecureString',
-      // Overwrite: overwrite,
+      Overwrite: overwrite,
+      // Tags: tags,
+    })
+
+    const tagCommand = new AddTagsToResourceCommand({
+      ResourceType: 'Parameter',
+      ResourceId: fullName,
       Tags: tags,
+    })
+
+    try {
+      await this.client.send(command)
+      await this.client.send(tagCommand)
+    } catch (e) {
+      console.error(e)
+      return ''
+    }
+
+    return fullName
+  }
+
+  async delete(name: string): Promise<boolean> {
+    const command = new DeleteParameterCommand({
+      Name: name,
     })
 
     try {
@@ -125,6 +155,4 @@ export class SSMConfig {
 
     return true
   }
-
-  async delete() {}
 }

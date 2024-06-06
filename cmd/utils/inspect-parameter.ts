@@ -8,24 +8,11 @@ interface GetParameterParams {
   isExist: boolean
 }
 
-class InspectParameter {
-  getParameter(filename = 'config.yaml'): Partial<GetParameterParams> {
-    const filePath = path.join(process.cwd(), filename)
-    if (!fs.existsSync(filePath)) {
-      return {
-        isExist: false,
-      }
-    }
-
-    const doc = yaml.load(fs.readFileSync(filePath, 'utf-8')) as Record<'config', GetParameterParams>
-    const [profile, region] = [doc?.config.profile, doc?.config.region]
-
-    return {
-      profile,
-      region,
-      isExist: profile && region ? true : false,
-    }
+export const getYamlConfig = <T>(filename: string, fn: (doc: unknown) => T): T => {
+  const filePath = path.join(process.cwd(), filename)
+  if (!fs.existsSync(filePath)) {
+    console.error(`Not Exist ${filePath}`)
   }
-}
 
-export const inspectParameter = new InspectParameter()
+  return fn(yaml.load(fs.readFileSync(filePath, 'utf-8')))
+}

@@ -1,4 +1,6 @@
 dist
 node_modules
-config.yaml
 result.json
+
+config.yaml
+input.yaml

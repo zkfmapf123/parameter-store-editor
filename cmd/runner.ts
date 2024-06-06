@@ -1,12 +1,24 @@
+import { deleteSubRunner } from './sub-task/parameter.delete'
 import { loadSubRunner } from './sub-task/parameter.load'
 import { writeSubRunner } from './sub-task/parameter.write'
-import { PromptConvertKST, PromptKeyParams, SelectBoxParams } from './types/interface'
-import { inspectParameter } from './utils/inspect-parameter'
+import { GetParameterParams, PromptConvertKST, PromptKeyParams, SelectBoxParams } from './types/interface'
+import { getYamlConfig } from './utils/inspect-parameter'
 import { SelectBox } from './utils/interaction'
+
+const CONFIG_FILE = 'config.yaml'
 
 export const Run = async () => {
   console.clear()
-  const config = inspectParameter.getParameter()
+  const config = getYamlConfig(CONFIG_FILE, (doc: unknown) => {
+    const _doc = doc as Record<'config', GetParameterParams>
+    const [profile, region] = [_doc?.config.profile, _doc?.config.region]
+
+    return {
+      profile,
+      region,
+      isExist: profile && region ? true : false,
+    }
+  })
 
   if (!config.isExist) {
     console.log('Not Exists Profile, Region')
@@ -37,17 +49,21 @@ export const Run = async () => {
 
     // Task 선택
     const select = await SelectBox('Select CLI', commandObj)
+    const awsProfile = {
+      profile: config.profile ?? '',
+      region: config.region ?? '',
+    }
     switch (select as PromptKeyParams) {
       case 'Delete':
-        console.log('delete')
+        await deleteSubRunner(awsProfile)
         exit()
 
       case 'Load':
-        await loadSubRunner({ profile: config.profile ?? '', region: config.region ?? '' })
+        await loadSubRunner(awsProfile)
         exit()
 
       case 'Write':
-        await writeSubRunner({ profile: config.profile ?? '', region: config.region ?? '' })
+        await writeSubRunner(awsProfile)
         exit()
 
       default:
