@@ -24,3 +24,10 @@ export interface GetParameterParams {
   region: string
   isExist: boolean
 }
+
+export interface WriteCLIParams {
+  app: string
+  env: string
+  svc: string
+  value: string
+}

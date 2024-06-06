@@ -1,7 +1,7 @@
-import { GetParametersByPathCommand, ListTagsForResourceCommand, SSMClient } from '@aws-sdk/client-ssm'
+import { GetParametersByPathCommand, ListTagsForResourceCommand, PutParameterCommand, SSMClient, Tag } from '@aws-sdk/client-ssm'
 import { fromIni } from '@aws-sdk/credential-providers'
 import { Dictionary, SSMParameterStoreParams } from '../types/aws.interface'
-import { GetParameterParams } from '../types/interface'
+import { GetParameterParams, WriteCLIParams } from '../types/interface'
 
 export class SSMConfig {
   private client: SSMClient
@@ -92,7 +92,39 @@ export class SSMConfig {
     return filterFn(value, res)
   }
 
-  async update() {}
+  async update(config: WriteCLIParams, overwrite = true): Promise<boolean> {
+    const { app, env, svc, value } = config
+    const fullName = `/${app}/${env}/${svc}`
+
+    const tags = Object.entries(config)
+      .filter(([k, _]) => k! == 'value')
+      .reduce((acc, [k, v]) => {
+        const _tag: Tag = {
+          Key: k,
+          Value: v,
+        }
+
+        acc.push(_tag)
+        return acc
+      }, [] as Tag[])
+
+    const command = new PutParameterCommand({
+      Name: fullName,
+      Value: value,
+      Type: 'SecureString',
+      // Overwrite: overwrite,
+      Tags: tags,
+    })
+
+    try {
+      await this.client.send(command)
+    } catch (e) {
+      console.error(e)
+      return false
+    }
+
+    return true
+  }
 
   async delete() {}
 }
