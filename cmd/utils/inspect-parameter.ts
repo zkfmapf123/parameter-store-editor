@@ -1,6 +1,5 @@
 import fs from 'fs'
 import yaml from 'js-yaml'
-import _ from 'lodash'
 import path from 'path'
 
 interface GetParameterParams {
@@ -18,19 +17,14 @@ class InspectParameter {
       }
     }
 
-    const doc = yaml.load(fs.readFileSync(filePath, 'utf-8'))
-    const profile = this.getProperties(doc, 'profile')
-    const region = this.getProperties(doc, 'region')
+    const doc = yaml.load(fs.readFileSync(filePath, 'utf-8')) as Record<'config', GetParameterParams>
+    const [profile, region] = [doc?.config.profile, doc?.config.region]
 
     return {
       profile,
       region,
       isExist: profile && region ? true : false,
     }
-  }
-
-  private getProperties(doc: unknown, key: string): string {
-    return _.findKey(doc, key) as string
   }
 }
 
