@@ -1,4 +1,5 @@
 import { loadSubRunner } from './sub-task/parameter.load'
+import { writeSubRunner } from './sub-task/parameter.write'
 import { PromptConvertKST, PromptKeyParams, SelectBoxParams } from './types/interface'
 import { inspectParameter } from './utils/inspect-parameter'
 import { SelectBox } from './utils/interaction'
@@ -46,7 +47,7 @@ export const Run = async () => {
         exit()
 
       case 'Write':
-        console.log('write')
+        await writeSubRunner({ profile: config.profile ?? '', region: config.region ?? '' })
         exit()
 
       default:

@@ -9,5 +9,5 @@ export const loadSubRunner = async ({ profile, region }: Partial<GetParameterPar
   })
 
   const loadJson = await ssmConfig.retrive()
-  fs.writeFileSync('result.json', JSON.stringify(loadJson), 'utf-8')
+  fs.writeFileSync('result.json', JSON.stringify(Object.values(loadJson)), 'utf-8')
 }
